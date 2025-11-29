@@ -1,0 +1,11 @@
+[project]
+name = "rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.3.3",
+    "sec-edgar-downloader>=5.0.3",
+    "unstructured>=0.18.21",
+]
