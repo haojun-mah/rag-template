@@ -1,50 +1,39 @@
-from unstructured.partition.html import partition_html
-from unstructured.partition.text import partition_text
-from unstructured.partition.auto import partition
-from typing import List, Dict
-import os
+from pathlib import Path
+from typing import List
 
-def parse_html(file_path: str) -> List[Dict]:
-    """Parse a HTML file with unstructured library and return a list of information"""
-    
-    try: 
-        # Use partition_auto which automatically detects the file type
-        # For SEC filings with embedded HTML, this works better than partition_html
-        elements = partition(
-            filename=file_path,
-            strategy='fast',  # Use hi_res for better accuracy with complex documents
+from unstructured.documents.elements import Element
+from unstructured.partition.auto import partition
+
+
+def _parse_file(file_path: Path) -> List[Element]:
+    """Parse a single document into unstructured Element objects."""
+
+    try:
+        print(f"Parsing file: {file_path}")
+        return partition(
+            filename=str(file_path),
+            strategy="fast",
             infer_table_structure=True,
             include_page_breaks=True,
-            extract_images_in_pdf=False
+            extract_images_in_pdf=False,
         )
-        return [el.to_dict() for el in elements]
-    except Exception as e:
-        print(f"Error parsing file {file_path}: {e}")
+    except Exception as exc:  # pragma: no cover - diagnostic logging only
+        print(f"Error parsing file {file_path}: {exc}")
         return []
 
 
-# Test code below 
-folder_path = "sec-edgar-filings/MSFT"
-file_list = []
+def parse_html(path: str) -> List[Element]:
+    """Parse a file or directory of filings and return Element objects."""
 
-for root, dirs, files in os.walk(folder_path):
-    for file in files:
-        file_list.append(os.path.join(root, file))
+    path_obj = Path(path)
+    if not path_obj.exists():
+        raise FileNotFoundError(f"Path does not exist: {path}")
 
-print(f"Found {len(file_list)} files")
-print(file_list)
+    if path_obj.is_file():
+        return _parse_file(path_obj)
 
-# Get a 10-K file
-ten_k_file = [f for f in file_list if "10-K" in f][0]
-print(f"\nParsing file: {ten_k_file}...")
+    elements: List[Element] = []
+    for file_path in sorted(p for p in path_obj.rglob("*") if p.is_file()):
+        elements.extend(_parse_file(file_path))
 
-parsed_elements = parse_html(ten_k_file)
-
-print(f"\nSuccessfully parsed into {len(parsed_elements)} elements.")
-print("\n--- Sample Elements ---")
-
-# Print a few sample elements to inspect their type and content
-for i, element in enumerate(parsed_elements[20:25]): # Show a slice of elements
-    elem_type = element.get('type', 'N/A')
-    text_snippet = element.get('text', '')[:100].replace('\n', ' ') + '...'
-    print(f"Element {i+20}: [Type: {elem_type}] - Content: '{text_snippet}'")
+    return elements
