@@ -4,11 +4,10 @@ from google.generativeai import types
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from dotenv import load_dotenv
+import json
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Try GEMINI_API_KEY first, then fall back to GOOGLE_API_KEY
 api_key = os.getenv("GEMINI_API_KEY") 
 genai.configure(api_key=api_key)
 
@@ -47,5 +46,15 @@ def chunk_enricher(chunk_text: str, is_table: bool, expert_role: str) -> str:
 
 def generate_enriched_chunk(metadata_prompt: str) -> ChunkMetadata:
     """Uses the Gemini LLM to generate enriched metadata for a chunk."""
+    
     response = model.generate_content(metadata_prompt)
-    return ChunkMetadata.model_validate_json(response.text)
+    
+    # Parse the JSON response
+    response_data = json.loads(response.text)
+    
+    # Ensure table_summary is present (set to None if missing)
+    if 'table_summary' not in response_data:
+        response_data['table_summary'] = None
+    
+    # Validate and return
+    return ChunkMetadata.model_validate(response_data)

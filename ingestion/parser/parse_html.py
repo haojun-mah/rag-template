@@ -22,6 +22,12 @@ def _parse_file(file_path: Path) -> List[Element]:
         return []
 
 
+def parse_html_file(file_path: str | Path) -> List[Element]:
+    """Parse a single file into Element objects (public helper wrapper)."""
+
+    return _parse_file(Path(file_path))
+
+
 def parse_html(path: str) -> List[Element]:
     """Parse a file or directory of filings and return Element objects."""
 

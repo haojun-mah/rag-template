@@ -4,7 +4,7 @@ from llm.llm_for_chunking import chunk_enricher, generate_enriched_chunk
 
 
 def enrich_chunk(chunks) -> List[Dict[str, Any]]:
-    """Enriches chunks using LLM-generated metadata."""
+    """Generates chunk metadata using LLM"""
     enriched_chunks = []
     
     for chunk in chunks: 
