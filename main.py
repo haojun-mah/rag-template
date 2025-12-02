@@ -3,12 +3,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from ingestion.chunk_enrichment.chunk_aggregator import (
+from agent.chunk_enrichment.chunk_aggregator import (
     collect_enriched_chunks,
 )
-from ingestion.chunk_enrichment.llm_enrichment import enrich_chunk
-from ingestion.chunk_generation.title_chunker import title_chunker
-from ingestion.parser.parse_html import parse_html
+from agent.chunk_enrichment.llm_enrichment import enrich_chunk
+from agent.chunk_generation.title_chunker import title_chunker
+from agent.parser.parse_html import parse_html
 
 TARGET_FILE_LOCATION = os.getenv("TARGET_FILE_LOCATION")
 ENRICHED_CHUNKS_PATH = Path("enriched/enriched_chunks.json")

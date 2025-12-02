@@ -1,11 +1,11 @@
 """
 Test cases for chunk enrichment functionality.
-Tests the enrich_chunk function from ingestion.chunk_enrichment.llm_enrichment
+Tests the enrich_chunk function from agent.chunk_enrichment.llm_enrichment
 """
 import pytest
 from unittest.mock import Mock, patch
 from unstructured.documents.elements import Text, ElementMetadata
-from ingestion.chunk_enrichment.llm_enrichment import enrich_chunk
+from agent.chunk_enrichment.llm_enrichment import enrich_chunk
 from llm.llm_for_chunking import ChunkMetadata
 
 
@@ -79,7 +79,7 @@ class TestChunkEnrichment:
 
     def test_enrich_chunk_returns_dict(self, sample_text_chunk, mock_llm_response):
         """Test that enrich_chunk returns a list of dictionaries."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
             result = enrich_chunk([sample_text_chunk])
             assert isinstance(result, list)
             assert len(result) == 1
@@ -87,7 +87,7 @@ class TestChunkEnrichment:
 
     def test_enriched_chunk_has_required_fields(self, sample_text_chunk, mock_llm_response):
         """Test that enriched chunk contains all required metadata fields."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
             result = enrich_chunk([sample_text_chunk])
             
             assert len(result) == 1
@@ -99,7 +99,7 @@ class TestChunkEnrichment:
 
     def test_enriched_chunk_summary_not_empty(self, sample_text_chunk, mock_llm_response):
         """Test that summary is not empty for text chunks."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
             result = enrich_chunk([sample_text_chunk])
             
             assert len(result) == 1
@@ -110,7 +110,7 @@ class TestChunkEnrichment:
 
     def test_enriched_chunk_keywords_is_list(self, sample_text_chunk, mock_llm_response):
         """Test that keywords is a list."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
             result = enrich_chunk([sample_text_chunk])
             
             assert len(result) == 1
@@ -122,7 +122,7 @@ class TestChunkEnrichment:
 
     def test_enriched_chunk_questions_is_list(self, sample_text_chunk, mock_llm_response):
         """Test that hypothetical_questions is a list."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
             result = enrich_chunk([sample_text_chunk])
             
             assert len(result) == 1
@@ -134,7 +134,7 @@ class TestChunkEnrichment:
 
     def test_text_chunk_table_summary_is_none(self, sample_text_chunk, mock_llm_response):
         """Test that table_summary is None for non-table chunks."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
             result = enrich_chunk([sample_text_chunk])
             
             assert len(result) == 1
@@ -144,7 +144,7 @@ class TestChunkEnrichment:
 
     def test_table_chunk_has_table_summary(self, sample_table_chunk, mock_table_llm_response):
         """Test that table chunks have table_summary populated."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_table_llm_response):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_table_llm_response):
             result = enrich_chunk([sample_table_chunk])
             
             assert len(result) == 1
@@ -159,9 +159,9 @@ class TestChunkEnrichment:
         long_text = "This is a very long text. " * 200  # ~5000 characters
         sample_text_chunk.text = long_text
         
-        with patch('ingestion.chunk_enrichment.llm_enrichment.chunk_enricher') as mock_enricher:
+        with patch('agent.chunk_enrichment.llm_enrichment.chunk_enricher') as mock_enricher:
             mock_enricher.return_value = "mocked prompt"
-            with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
+            with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_llm_response):
                 enrich_chunk([sample_text_chunk])
                 
                 # Verify that chunk_enricher was called with truncated content
@@ -172,7 +172,7 @@ class TestChunkEnrichment:
 
     def test_enrich_chunk_handles_error_gracefully(self, sample_text_chunk):
         """Test that enrich_chunk returns empty dict on error."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', side_effect=Exception("API Error")):
+        with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', side_effect=Exception("API Error")):
             result = enrich_chunk([sample_text_chunk])
             
             assert isinstance(result, list)
@@ -182,9 +182,9 @@ class TestChunkEnrichment:
 
     def test_enrich_identifies_table_correctly(self, sample_table_chunk, mock_table_llm_response):
         """Test that enrichment correctly identifies table chunks."""
-        with patch('ingestion.chunk_enrichment.llm_enrichment.chunk_enricher') as mock_enricher:
+        with patch('agent.chunk_enrichment.llm_enrichment.chunk_enricher') as mock_enricher:
             mock_enricher.return_value = "mocked prompt"
-            with patch('ingestion.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_table_llm_response):
+            with patch('agent.chunk_enrichment.llm_enrichment.generate_enriched_chunk', return_value=mock_table_llm_response):
                 enrich_chunk([sample_table_chunk])
                 
                 # Verify chunk_enricher was called with is_table=True

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ingestion.chunk_enrichment.chunk_aggregator import collect_enriched_chunks
+from agent.chunk_enrichment.chunk_aggregator import collect_enriched_chunks
 
 
 class DummyMetadata:

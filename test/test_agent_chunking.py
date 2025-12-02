@@ -1,10 +1,10 @@
 """
 Test cases for chunking functionality.
-Tests the title_chunker function from ingestion.chunk_generation.title_chunker
+Tests the title_chunker function from agent.chunk_generation.title_chunker
 """
 import pytest
 from unstructured.documents.elements import Text, Title, ElementMetadata
-from ingestion.chunk_generation.title_chunker import title_chunker
+from agent.chunk_generation.title_chunker import title_chunker
 
 
 class TestTitleChunker:
