@@ -9,17 +9,25 @@ from agent.chunk_enrichment.chunk_aggregator import (
 from agent.chunk_enrichment.llm_enrichment import enrich_chunk
 from agent.chunk_generation.title_chunker import title_chunker
 from agent.parser.parse_html import parse_html
-
-TARGET_FILE_LOCATION = os.getenv("TARGET_FILE_LOCATION")
-ENRICHED_CHUNKS_PATH = Path("enriched/enriched_chunks.json")
+from agent.embedder.fast_embed_qdrant import create_embedding_from_chunks
+from utils.sqlite_db import create_table_from_input
 
 
 def main():
     """Main orchestrator for Agentic Rag workflow"""
 
     load_dotenv()
+    
+    # Extract environment variables
+    folder = os.getenv("TARGET_FILE_LOCATION")
+    if not folder:
+        print("Error: TARGET_FILE_LOCATION environment variable not set.")
+        return
 
-    folder = TARGET_FILE_LOCATION
+    enriched_chunks_path = os.getenv("ENRICHED_CHUNKS_PATH")
+    if not enriched_chunks_path:
+        print("Error: ENRICHED_CHUNKS_PATH environment variable not set.")
+        return
 
     # Parse files into text
     parsed_elements = parse_html(folder)
@@ -40,12 +48,21 @@ def main():
         print(f"\nEnriched Chunk {i+1}: {enriched}")
 
     # Aggregate and persist enriched chunks in JSON
-    collect_enriched_chunks(
+    enriched_chunks = collect_enriched_chunks(
         file_path=folder,
         chunks=chunked_elements,
         enriched_metadata=enriched_chunks,
-        output_path=ENRICHED_CHUNKS_PATH,
-        filings_root=TARGET_FILE_LOCATION,
+        output_path=enriched_chunks_path,
+        filings_root=folder,
+    )
+
+    # Create embeddings from enriched chunks and store in Qdrant
+    create_embedding_from_chunks(enriched_chunks)
+
+    # Create SQLite table from data
+    create_table_from_input(
+        input_path="sec-edgar-filings/revenue_summary.csv",
+        table_name="revenue_summary",
     )
 
 

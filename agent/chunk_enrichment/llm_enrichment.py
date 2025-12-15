@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
-from llm.llm_for_chunking import chunk_enricher, generate_enriched_chunk
+from llm.qwen_ollama_chunking import chunk_enricher, generate_enriched_chunk
 
 
 def enrich_chunk(chunks) -> List[Dict[str, Any]]:
