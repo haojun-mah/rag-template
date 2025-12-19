@@ -43,7 +43,7 @@ def generate_enriched_chunk(metadata_prompt: str) -> ChunkMetadata:
     client = Client(host='http://192.168.88.17:11434') # Default host
 
     response = client.chat(
-        model='qwen2.5:7b',
+        model='qwen2.5:1.5b',
         messages=[{'role': 'user', 'content': full_prompt}],
         format='json'
     )

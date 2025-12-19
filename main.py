@@ -16,7 +16,8 @@ from utils.sqlite_db import create_table_from_input
 def main():
     """Main orchestrator for Agentic Rag workflow"""
 
-    load_dotenv()
+    # Force reload from .env file, overriding any cached shell variables
+    load_dotenv(override=True)
     
     # Extract environment variables
     folder = os.getenv("TARGET_FILE_LOCATION")
@@ -28,6 +29,8 @@ def main():
     if not enriched_chunks_path:
         print("Error: ENRICHED_CHUNKS_PATH environment variable not set.")
         return
+
+    sqlite_csv_path = os.getenv("SQLITE_CSV_PATH", "sec-edgar-filings/revenue_summary.csv")
 
     # Parse files into text
     parsed_elements = parse_html(folder)
@@ -41,11 +44,25 @@ def main():
     print(f"\nGenerated {len(chunked_elements)} chunks from parsed elements.")
 
     # Enrich chunks with LLM-generated metadata
-    enriched_chunks = enrich_chunk(chunked_elements)
-    print(f"\nEnriched {len(enriched_chunks)} chunks with metadata.")
-    print("\nSample enriched chunk metadata:")
-    for i, enriched in enumerate(enriched_chunks[:3]):
-        print(f"\nEnriched Chunk {i+1}: {enriched}")
+    skip_enrichment = os.getenv("SKIP_ENRICHMENT", "false").lower() == "true"
+    
+    if skip_enrichment:
+        print("\nSkipping enrichment as SKIP_ENRICHMENT is set to true.")
+        enriched_chunks = [
+            {
+                "summary": "No summary available (enrichment skipped)",
+                "keywords": [],
+                "hypothetical_questions": [],
+                "table_summary": None
+            }
+            for _ in chunked_elements
+        ]
+    else:
+        enriched_chunks = enrich_chunk(chunked_elements)
+        print(f"\nEnriched {len(enriched_chunks)} chunks with metadata.")
+        print("\nSample enriched chunk metadata:")
+        for i, enriched in enumerate(enriched_chunks[:3]):
+            print(f"\nEnriched Chunk {i+1}: {enriched}")
 
     # Aggregate and persist enriched chunks in JSON
     enriched_chunks = collect_enriched_chunks(
@@ -61,7 +78,7 @@ def main():
 
     # Create SQLite table from data
     create_table_from_input(
-        input_path="sec-edgar-filings/revenue_summary.csv",
+        input_path=sqlite_csv_path,
         table_name="revenue_summary",
     )
 

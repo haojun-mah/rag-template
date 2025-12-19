@@ -1,7 +1,7 @@
 import importlib
 import json
 import sqlite3
-from utils.sqlite_db import create_table_from_csv as real_create_table
+from utils.sqlite_db import create_table_from_input as real_create_table
 
 import main as main_module
 
@@ -51,7 +51,7 @@ def test_main_workflow_with_small_file(monkeypatch, tmp_path):
         # Pass the temp db_path to the real function
         return real_create_table(csv_path, table_name, db_path=db_path)
     
-    monkeypatch.setattr(main, "create_table_from_csv", patched_create_table)
+    monkeypatch.setattr(main, "create_table_from_input", patched_create_table)
 
     # 6. Run Main
     main.main()

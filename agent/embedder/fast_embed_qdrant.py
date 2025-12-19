@@ -25,11 +25,19 @@ def create_embedding_from_chunks(chunks : List[dict]) -> str:
     chunks_to_upsert = []
 
     for i, chunk in enumerate(chunks):
-        string_to_embed = f"""
-        Summary: {chunk['summary']}
-        Keywords: {', '.join(chunk['keywords'])}
-        Content: {chunk['content'][:1000]}
-        """
+        summary = chunk.get('summary', '')
+        keywords = chunk.get('keywords', [])
+
+        # Check if enrichment was skipped (based on the default message set in main.py)
+        if summary == "No summary available (enrichment skipped)":
+            string_to_embed = f"Content: {chunk['content'][:1000]}"
+        else:
+            string_to_embed = f"""
+            Summary: {summary}
+            Keywords: {', '.join(keywords)}
+            Content: {chunk['content'][:1000]}
+            """
+        
         texts_to_embed.append(string_to_embed.strip())
         chunks_to_upsert.append(models.PointStruct(
             id=i,
